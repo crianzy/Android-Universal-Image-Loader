@@ -21,6 +21,7 @@ import java.util.Collection;
 
 /**
  * Interface for memory cache
+ * 缓存接口
  *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.9.2

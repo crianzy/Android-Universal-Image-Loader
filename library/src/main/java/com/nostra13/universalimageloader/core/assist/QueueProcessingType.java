@@ -20,6 +20,13 @@ package com.nostra13.universalimageloader.core.assist;
  *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.6.3
+ *
+ * 任务的 处理方式
+ *
+ * FIFO 先进先出
+ *
+ * LIFO 后进先出
+ *
  */
 public enum QueueProcessingType {
 	FIFO, LIFO

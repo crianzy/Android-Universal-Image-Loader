@@ -16,6 +16,8 @@ import java.util.Map;
  * <br />
  * <b>NOTE:</b> This cache uses only strong references for stored Bitmaps.
  *
+ * LRU 缓存
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.8.1
  */

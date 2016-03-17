@@ -7,6 +7,9 @@ import java.io.InputStream;
 /**
  * Many streams obtained over slow connection show <a href="http://code.google.com/p/android/issues/detail?id=6066">this
  * problem</a>.
+ *
+ * 带刷新的输入流
+ *
  */
 public class FlushedInputStream extends FilterInputStream {
 

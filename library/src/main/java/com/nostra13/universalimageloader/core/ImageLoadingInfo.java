@@ -25,6 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Information for load'n'display image task
  *
+ *
+ * 基本就是你用于保存 基本信息的类
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see com.nostra13.universalimageloader.utils.MemoryCacheUtils
  * @see DisplayImageOptions

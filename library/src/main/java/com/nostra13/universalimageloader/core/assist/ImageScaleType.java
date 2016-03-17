@@ -31,6 +31,12 @@ public enum ImageScaleType {
 	 * If Bitmap is expected to display than it must not exceed this size (otherwise you'll get the exception
 	 * "OpenGLRenderer: Bitmap too large to be uploaded into a texture".<br />
 	 * Image will be subsampled in an integer number of times (1, 2, 3, ...) to maximum texture size of device.
+	 *
+	 * 在底层opengl 上纹理 显示的最大分辨率是  2048x2048
+	 * 如果超过这个 大小 会报出说  Bitmap too large to be uploaded into a texture
+	 *
+	 * 图片将会整数倍的缩小 知道 小于 最大值
+	 *
 	 */
 	NONE_SAFE,
 	/**
@@ -39,6 +45,11 @@ public enum ImageScaleType {
 	 * {@linkplain android.widget.AdapterView adapter-views}) .<br />
 	 * Relates to {@link android.graphics.BitmapFactory.Options#inSampleSize}<br />
 	 * Note: If original image size is smaller than target size then original image <b>won't</b> be scaled.
+	 *
+	 * 图片每次缩小2 被 直到 图片小于 target size
+	 * 很适合用于 显示 ListView GridView 中
+	 * 如果图片本少 小于 target 那么就不会缩放
+	 *
 	 */
 	IN_SAMPLE_POWER_OF_2,
 	/**
@@ -59,6 +70,11 @@ public enum ImageScaleType {
 	 * Bitmap.createBitmap(...)}.<br />
 	 * <b>Cons:</b> Saves memory by keeping smaller Bitmap in memory cache (comparing with IN_SAMPLE... scale types)<br />
 	 * <b>Pros:</b> Requires more memory in one time for creation of result Bitmap.
+	 *
+	 * 缩放到恰好的  target size  在内存不足的情况下 用 挺好的
+	 *
+	 * 优点 存在缓存中图片较小
+	 * 缺点 就是需要 多一次 床架 Bitmap
 	 */
 	EXACTLY,
 	/**
@@ -73,6 +89,13 @@ public enum ImageScaleType {
 	 * Bitmap.createBitmap(...)}.<br />
 	 * <b>Cons:</b> Saves memory by keeping smaller Bitmap in memory cache (comparing with IN_SAMPLE... scale types)<br />
 	 * <b>Pros:</b> Requires more memory in one time for creation of result Bitmap.
+	 *
+	 * srcSize(10x10), targetSize(20x20), stretch = true  -> scale = 2
+	 *
+	 * 宽高 缩放到 和 target 一致
+	 * 即使 图片大小 小于 target
+	 *
+	 *
 	 */
 	EXACTLY_STRETCHED
 }

@@ -18,6 +18,8 @@ package com.nostra13.universalimageloader.core.assist;
 /**
  * Present width and height values
  *
+ * 图片 宽高 封装类
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */

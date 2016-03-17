@@ -27,6 +27,16 @@ import com.nostra13.universalimageloader.core.assist.ViewScaleType;
  * view is returned in {@link com.nostra13.universalimageloader.core.listener.ImageLoadingListener ImageLoadingListener}'s
  * callbacks.
  *
+ * ImageView 包装接口
+ * 在 Imageloader 中 ImageView 操作 都是通过ImageAware 来完成的
+ *
+ * 其实不只是 包装 ImageView 注释上锁可以包装 所有的 View 只要自己实现 相应的 包装类就好
+ *
+ * 现在有3个子类:
+ * ViewAware
+ * NonViewAware
+ * ImageViewAware
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see ViewAware
  * @see ImageViewAware
@@ -70,6 +80,9 @@ public interface ImageAware {
 	 *
 	 * @return <b>true</b> - if view is collected by GC and ImageLoader should stop processing this image aware view;
 	 * <b>false</b> - otherwise
+	 *
+	 * 返回手否被回收了
+	 * 如果被挥挥手了那么应该停止 处理图片了
 	 */
 	boolean isCollected();
 

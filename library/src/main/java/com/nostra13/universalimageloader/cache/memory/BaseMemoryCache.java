@@ -24,6 +24,7 @@ import java.util.*;
  * Base memory cache. Implements common functionality for memory cache. Provides object references (
  * {@linkplain Reference not strong}) storing.
  *
+ * 内存缓存接口  的 基本实现类
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */

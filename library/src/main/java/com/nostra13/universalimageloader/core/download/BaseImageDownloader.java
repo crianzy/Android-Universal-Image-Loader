@@ -46,6 +46,8 @@ import java.net.URLConnection;
  * Provides retrieving of {@link InputStream} of image by URI from network or file system or app resources.<br />
  * {@link URLConnection} is used to retrieve image stream from network.
  *
+ * 图片 下载器
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.8.0
  */
@@ -67,7 +69,10 @@ public class BaseImageDownloader implements ImageDownloader {
 	private static final String ERROR_UNSUPPORTED_SCHEME = "UIL doesn't support scheme(protocol) by default [%s]. " + "You should implement this support yourself (BaseImageDownloader.getStreamFromOtherSource(...))";
 
 	protected final Context context;
+
+	// 连接超时时间
 	protected final int connectTimeout;
+	// 读取超时时间
 	protected final int readTimeout;
 
 	public BaseImageDownloader(Context context) {
@@ -103,6 +108,8 @@ public class BaseImageDownloader implements ImageDownloader {
 	/**
 	 * Retrieves {@link InputStream} of image by URI (image is located in the network).
 	 *
+	 * 从网络获取图片
+	 *
 	 * @param imageUri Image URI
 	 * @param extra    Auxiliary object which was passed to {@link DisplayImageOptions.Builder#extraForDownloader(Object)
 	 *                 DisplayImageOptions.extraForDownloader(Object)}; can be null
@@ -111,31 +118,39 @@ public class BaseImageDownloader implements ImageDownloader {
 	 *                     URL.
 	 */
 	protected InputStream getStreamFromNetwork(String imageUri, Object extra) throws IOException {
+		// 创建 http 连接
 		HttpURLConnection conn = createConnection(imageUri, extra);
 
 		int redirectCount = 0;
 		while (conn.getResponseCode() / 100 == 3 && redirectCount < MAX_REDIRECT_COUNT) {
+			// 如果 是 403  或 什么3  且 重定向次数 小于 最大次数 5
+			// 那么重新创建连接
 			conn = createConnection(conn.getHeaderField("Location"), extra);
 			redirectCount++;
 		}
 
 		InputStream imageStream;
 		try {
+			// 获取输入流
 			imageStream = conn.getInputStream();
 		} catch (IOException e) {
 			// Read all data to allow reuse connection (http://bit.ly/1ad35PY)
+			// 除了异常 关闭流
 			IoUtils.readAndCloseStream(conn.getErrorStream());
 			throw e;
 		}
 		if (!shouldBeProcessed(conn)) {
+			// 判断 是否需要处理 200 才处理
 			IoUtils.closeSilently(imageStream);
 			throw new IOException("Image request failed with response code " + conn.getResponseCode());
 		}
-
+		// 吧流在封装了一下 主要是加入了 长度
 		return new ContentLengthInputStream(new BufferedInputStream(imageStream, BUFFER_SIZE), conn.getContentLength());
 	}
 
 	/**
+	 *
+	 * 判断 HttpURLConnection 是否是需要处理的流 只有200 才处理
 	 * @param conn Opened request connection (response code is available)
 	 * @return <b>true</b> - if data from connection is correct and should be read and processed;
 	 *         <b>false</b> - if response contains irrelevant data and shouldn't be processed

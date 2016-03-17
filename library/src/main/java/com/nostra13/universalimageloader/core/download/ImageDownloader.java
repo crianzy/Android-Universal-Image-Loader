@@ -38,10 +38,15 @@ public interface ImageDownloader {
 	 * @return {@link InputStream} of image
 	 * @throws IOException                   if some I/O error occurs during getting image stream
 	 * @throws UnsupportedOperationException if image URI has unsupported scheme(protocol)
+	 *
+	 * 获取 输入流
 	 */
 	InputStream getStream(String imageUri, Object extra) throws IOException;
 
-	/** Represents supported schemes(protocols) of URI. Provides convenient methods for work with schemes and URIs. */
+	/** Represents supported schemes(protocols) of URI. Provides convenient methods for work with schemes and URIs.
+	 *
+	 * 下载器支持的 Scheme
+	 * */
 	public enum Scheme {
 		HTTP("http"), HTTPS("https"), FILE("file"), CONTENT("content"), ASSETS("assets"), DRAWABLE("drawable"), UNKNOWN("");
 
@@ -74,14 +79,22 @@ public interface ImageDownloader {
 			return uri.toLowerCase(Locale.US).startsWith(uriPrefix);
 		}
 
-		/** Appends scheme to incoming path */
+		/** Appends scheme to incoming path
+		 * 包装uri
+		 *
+		 * */
 		public String wrap(String path) {
 			return uriPrefix + path;
 		}
 
-		/** Removed scheme part ("scheme://") from incoming URI */
+		/** Removed scheme part ("scheme://") from incoming URI
+		 *
+		 * 这个房 是去掉  file:// 这部分
+		 * 返回的 是原来的  地址
+		 * */
 		public String crop(String uri) {
 			if (!belongsTo(uri)) {
+				// 如果 是不支持的uri 抛出异常
 				throw new IllegalArgumentException(String.format("URI [%1$s] doesn't have expected scheme [%2$s]", uri, scheme));
 			}
 			return uri.substring(uriPrefix.length());

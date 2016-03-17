@@ -21,6 +21,7 @@ import android.widget.ImageView.ScaleType;
 /**
  * Simplify {@linkplain ScaleType ImageView's scale type} to 2 types: {@link #FIT_INSIDE} and {@link #CROP}
  *
+ * View 缩放类型
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.6.1
  */
@@ -28,11 +29,15 @@ public enum ViewScaleType {
 	/**
 	 * Scale the image uniformly (maintain the image's aspect ratio) so that at least one dimension (width or height) of
 	 * the image will be equal to or less the corresponding dimension of the view.
+	 *
+	 * 自动适应 但是可能不会铺满 View
 	 */
 	FIT_INSIDE,
 	/**
 	 * Scale the image uniformly (maintain the image's aspect ratio) so that both dimensions (width and height) of the
 	 * image will be equal to or larger than the corresponding dimension of the view.
+	 *
+	 * 会铺满View  但是可能会导致部分图片没有显示
 	 */
 	CROP;
 

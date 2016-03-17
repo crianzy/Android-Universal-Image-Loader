@@ -127,6 +127,11 @@ public final class ImageLoaderConfiguration {
 		return new Builder(context).build();
 	}
 
+	/**
+	 * 默认的最大 宽高
+	 * 在没有渠道 ImageView的宽高的时候用这个
+	 * @return
+	 */
 	ImageSize getMaxImageSize() {
 		DisplayMetrics displayMetrics = resources.getDisplayMetrics();
 
@@ -144,6 +149,11 @@ public final class ImageLoaderConfiguration {
 	/**
 	 * Builder for {@link ImageLoaderConfiguration}
 	 *
+	 * Configuration 使用Bilder 的实际模式 方面设置参数 不需要每次 都 set那样
+	 * 简化 复制的 构建设置参数的过程
+	 *
+	 * 这里不知 不然了 一些 缓存大小的配置 还有 缓存方式  ImageLoader 中 engine 都是通过这个配置来生成的
+	 *
 	 * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
 	 */
 	public static class Builder {
@@ -155,10 +165,13 @@ public final class ImageLoaderConfiguration {
 				+ "can overlap taskExecutor() and taskExecutorForCachedImages() calls.";
 
 		/** {@value} */
+		// 默认的线程 刷量  3个
 		public static final int DEFAULT_THREAD_POOL_SIZE = 3;
 		/** {@value} */
+		// 默认的 线程 重要等级  不是很高
 		public static final int DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 2;
 		/** {@value} */
+		// 队列的处理方  默认 先进先出
 		public static final QueueProcessingType DEFAULT_TASK_PROCESSING_TYPE = QueueProcessingType.FIFO;
 
 		private Context context;
@@ -199,8 +212,11 @@ public final class ImageLoaderConfiguration {
 		/**
 		 * Sets options for memory cache
 		 *
+		 * 设置 memoryCache 总 缓存图片的最大 宽高 超过了 就不缓存
+		 *
 		 * @param maxImageWidthForMemoryCache  Maximum image width which will be used for memory saving during decoding
 		 *                                     an image to {@link android.graphics.Bitmap Bitmap}. <b>Default value - device's screen width</b>
+		 *
 		 * @param maxImageHeightForMemoryCache Maximum image height which will be used for memory saving during decoding
 		 *                                     an image to {@link android.graphics.Bitmap Bitmap}. <b>Default value</b> - device's screen height
 		 */
@@ -225,6 +241,9 @@ public final class ImageLoaderConfiguration {
 		 * Sets options for resizing/compressing of downloaded images before saving to disk cache.<br />
 		 * <b>NOTE: Use this option only when you have appropriate needs. It can make ImageLoader slower.</b>
 		 *
+		 * 设置 diskCache 中缓存图片的额最大宽高 超过了 就不缓存
+		 * TODO 同时 还是这 Bitmap 一个处理对象, 可以处理缓存的图片?
+		 *
 		 * @param maxImageWidthForDiskCache  Maximum width of downloaded images for saving at disk cache
 		 * @param maxImageHeightForDiskCache Maximum height of downloaded images for saving at disk cache
 		 * @param processorForDiskCache      null-ok; {@linkplain BitmapProcessor Bitmap processor} which process images before saving them in disc cache
@@ -248,6 +267,8 @@ public final class ImageLoaderConfiguration {
 		 * <li>{@link #tasksProcessingOrder(QueueProcessingType)}</li>
 		 * </ul>
 		 *
+		 * 设置 线程池 当然不设置 有自己默认的
+		 *
 		 * @see #taskExecutorForCachedImages(Executor)
 		 */
 		public Builder taskExecutor(Executor executor) {
@@ -260,6 +281,9 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置加载 缓存图片的 线程池
+		 *
 		 * Sets custom {@linkplain Executor executor} for tasks of displaying <b>cached on disk</b> images (these tasks
 		 * are executed quickly so UIL prefer to use separate executor for them).<br />
 		 * <br />
@@ -278,6 +302,7 @@ public final class ImageLoaderConfiguration {
 		 * @see #taskExecutor(Executor)
 		 */
 		public Builder taskExecutorForCachedImages(Executor executorForCachedImages) {
+			// 这里打log 是为了 说明 前面已经 设置  线程池大小,  线程重要等级 , 你现在 又来自己设置一个线程池 你有病吧
 			if (threadPoolSize != DEFAULT_THREAD_POOL_SIZE || threadPriority != DEFAULT_THREAD_PRIORITY || tasksProcessingType != DEFAULT_TASK_PROCESSING_TYPE) {
 				L.w(WARNING_OVERLAP_EXECUTOR);
 			}
@@ -287,6 +312,8 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置线程池中 线程数量
 		 * Sets thread pool size for image display tasks.<br />
 		 * Default value - {@link #DEFAULT_THREAD_POOL_SIZE this}
 		 */
@@ -300,6 +327,7 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 * 设置线程 权重
 		 * Sets the priority for image loading threads. Should be <b>NOT</b> greater than {@link Thread#MAX_PRIORITY} or
 		 * less than {@link Thread#MIN_PRIORITY}<br />
 		 * Default value - {@link #DEFAULT_THREAD_PRIORITY this}
@@ -328,6 +356,10 @@ public final class ImageLoaderConfiguration {
 		 * So <b>the default behavior is to allow to cache multiple sizes of one image in memory</b>. You can
 		 * <b>deny</b> it by calling <b>this</b> method: so when some image will be cached in memory then previous
 		 * cached size of this image (if it exists) will be removed from memory cache before.
+		 *
+		 * 设置 一个URL只缓存 一种图片
+		 * 默认 是可以 缓存 多种 不同尺寸的图片的
+		 *
 		 */
 		public Builder denyCacheImageMultipleSizesInMemory() {
 			this.denyCacheImageMultipleSizesInMemory = true;
@@ -337,6 +369,8 @@ public final class ImageLoaderConfiguration {
 		/**
 		 * Sets type of queue processing for tasks for loading and displaying images.<br />
 		 * Default value - {@link QueueProcessingType#FIFO}
+		 *
+		 * 设置 任务对了 的处理顺序 默认是 先进先出
 		 */
 		public Builder tasksProcessingOrder(QueueProcessingType tasksProcessingType) {
 			if (taskExecutor != null || taskExecutorForCachedImages != null) {
@@ -354,11 +388,15 @@ public final class ImageLoaderConfiguration {
 		 * {@link com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache LruMemoryCache} will be used as
 		 * memory cache. You can use {@link #memoryCache(MemoryCache)} method to set your own implementation of
 		 * {@link MemoryCache}.
+		 *
+		 *
+		 * 设置  memoryCache 最大值
 		 */
 		public Builder memoryCacheSize(int memoryCacheSize) {
 			if (memoryCacheSize <= 0) throw new IllegalArgumentException("memoryCacheSize must be a positive number");
 
 			if (memoryCache != null) {
+				// 提示 应该先设置 memoryCache 再 设置 memoryCacheSize
 				L.w(WARNING_OVERLAP_MEMORY_CACHE);
 			}
 
@@ -374,6 +412,9 @@ public final class ImageLoaderConfiguration {
 		 * {@link com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache LruMemoryCache} will be used as
 		 * memory cache. You can use {@link #memoryCache(MemoryCache)} method to set your own implementation of
 		 * {@link MemoryCache}.
+		 *
+		 * 设置 memoryCacheSize 占可用内存的百分比
+		 *
 		 */
 		public Builder memoryCacheSizePercentage(int availableMemoryPercent) {
 			if (availableMemoryPercent <= 0 || availableMemoryPercent >= 100) {
@@ -383,7 +424,7 @@ public final class ImageLoaderConfiguration {
 			if (memoryCache != null) {
 				L.w(WARNING_OVERLAP_MEMORY_CACHE);
 			}
-
+			// 获取最大的可用 缓存 然后根据百分比 计算 缓存大小
 			long availableMemory = Runtime.getRuntime().maxMemory();
 			memoryCacheSize = (int) (availableMemory * (availableMemoryPercent / 100f));
 			return this;
@@ -398,6 +439,8 @@ public final class ImageLoaderConfiguration {
 		 * <ul>
 		 * <li>{@link #memoryCacheSize(int)}</li>
 		 * </ul>
+		 *
+		 * 设置 MemoryCache  有多重方式 LRU 虚引用 FIFO 等等
 		 */
 		public Builder memoryCache(MemoryCache memoryCache) {
 			if (memoryCacheSize != 0) {
@@ -415,6 +458,8 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置 diskCache 的最大值
 		 * Sets maximum disk cache size for images (in bytes).<br />
 		 * By default: disk cache is unlimited.<br />
 		 * <b>NOTE:</b> If you use this method then
@@ -440,6 +485,9 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置 diskCache 的文件的最大数量
+		 *
 		 * Sets maximum file count in disk cache directory.<br />
 		 * By default: disk cache is unlimited.<br />
 		 * <b>NOTE:</b> If you use this method then
@@ -465,6 +513,8 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置 diskCache 文件名字的生成器
 		 * Sets name generator for files cached in disk cache.<br />
 		 * Default value -
 		 * {@link com.nostra13.universalimageloader.core.DefaultConfigurationFactory#createFileNameGenerator()
@@ -486,6 +536,9 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 *
+		 * 设置 diskCache  也有多中 默认的是 LRU
+		 *
 		 * Sets disk cache for images.<br />
 		 * Default value - {@link com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache
 		 * UnlimitedDiskCache}. Cache directory is defined by
@@ -516,6 +569,8 @@ public final class ImageLoaderConfiguration {
 		 * Default value -
 		 * {@link com.nostra13.universalimageloader.core.DefaultConfigurationFactory#createImageDownloader(Context)
 		 * DefaultConfigurationFactory.createImageDownloader()}
+		 *
+		 * 设置 ImageDownloader  有 HttpClientImageDownloader  还有 okHttp 等 多种
 		 */
 		public Builder imageDownloader(ImageDownloader imageDownloader) {
 			this.downloader = imageDownloader;
@@ -523,6 +578,10 @@ public final class ImageLoaderConfiguration {
 		}
 
 		/**
+		 * 设置图片解码器 默认是 BaseImageDecoder 解码器
+		 *
+		 * 还有jpeg 解码器
+		 *
 		 * Sets utility which will be responsible for decoding of image stream.<br />
 		 * Default value -
 		 * {@link com.nostra13.universalimageloader.core.DefaultConfigurationFactory#createImageDecoder(boolean)
@@ -538,6 +597,8 @@ public final class ImageLoaderConfiguration {
 		 * be used for every {@linkplain ImageLoader#displayImage(String, android.widget.ImageView) image display call}
 		 * without passing custom {@linkplain DisplayImageOptions options}<br />
 		 * Default value - {@link DisplayImageOptions#createSimple() Simple options}
+		 *
+		 * 这么 默认的图片加载参数
 		 */
 		public Builder defaultDisplayImageOptions(DisplayImageOptions defaultDisplayImageOptions) {
 			this.defaultDisplayImageOptions = defaultDisplayImageOptions;
@@ -548,6 +609,8 @@ public final class ImageLoaderConfiguration {
 		 * Enables detail logging of {@link ImageLoader} work. To prevent detail logs don't call this method.
 		 * Consider {@link com.nostra13.universalimageloader.utils.L#disableLogging()} to disable
 		 * ImageLoader logging completely (even error logs)
+		 *
+		 * 设置是否显示log
 		 */
 		public Builder writeDebugLogs() {
 			this.writeLogs = true;
@@ -560,6 +623,9 @@ public final class ImageLoaderConfiguration {
 			return new ImageLoaderConfiguration(this);
 		}
 
+		/**
+		 * 在build 前 初始化 一些没有手动设置的配置
+		 */
 		private void initEmptyFieldsWithDefaultValues() {
 			if (taskExecutor == null) {
 				taskExecutor = DefaultConfigurationFactory
@@ -584,6 +650,7 @@ public final class ImageLoaderConfiguration {
 				memoryCache = DefaultConfigurationFactory.createMemoryCache(context, memoryCacheSize);
 			}
 			if (denyCacheImageMultipleSizesInMemory) {
+				// 如果设置 不能 缓存 多种大小的图片 则 memoryCache  还需要在重新处理下
 				memoryCache = new FuzzyKeyMemoryCache(memoryCache, MemoryCacheUtils.createFuzzyKeyComparator());
 			}
 			if (downloader == null) {
@@ -602,6 +669,9 @@ public final class ImageLoaderConfiguration {
 	 * Decorator. Prevents downloads from network (throws {@link IllegalStateException exception}).<br />
 	 * In most cases this downloader shouldn't be used directly.
 	 *
+	 * 不适用网络的 一个下载器
+	 * 如果设置为加载网络图片的时候会用到
+	 * LoadAndDisplayImageTask 中用到
 	 * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
 	 * @since 1.8.0
 	 */
@@ -629,6 +699,7 @@ public final class ImageLoaderConfiguration {
 	 * Decorator. Handles <a href="http://code.google.com/p/android/issues/detail?id=6066">this problem</a> on slow networks
 	 * using {@link com.nostra13.universalimageloader.core.assist.FlushedInputStream}.
 	 *
+	 * 慢速网络下的一个加载器 在 LoadAndDisplayImageTask 中用到
 	 * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
 	 * @since 1.8.1
 	 */

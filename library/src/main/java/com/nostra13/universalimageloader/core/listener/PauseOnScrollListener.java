@@ -28,6 +28,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
  * Set it to your list view's {@link AbsListView#setOnScrollListener(OnScrollListener) setOnScrollListener(...)}.<br />
  * This listener can wrap your custom {@linkplain OnScrollListener listener}.
  *
+ *
+ * 滑动中暂停的Listener
+ *
+ * 这个是需要设置给 ListView 这些  然后 在滑动的过程中红会暂停加载图片
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.7.0
  */

@@ -69,6 +69,7 @@ public abstract class ViewAware implements ImageAware {
 	public ViewAware(View view, boolean checkActualViewSize) {
 		if (view == null) throw new IllegalArgumentException("view must not be null");
 
+		// 虚引用 到 本来 的View
 		this.viewRef = new WeakReference<View>(view);
 		this.checkActualViewSize = checkActualViewSize;
 	}
@@ -123,6 +124,7 @@ public abstract class ViewAware implements ImageAware {
 
 	@Override
 	public ViewScaleType getScaleType() {
+		// 返回的 裁切
 		return ViewScaleType.CROP;
 	}
 

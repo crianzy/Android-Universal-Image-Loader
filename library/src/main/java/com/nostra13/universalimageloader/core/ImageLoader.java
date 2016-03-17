@@ -43,6 +43,13 @@ import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
  * Singletone for image loading and displaying at {@link ImageView ImageViews}<br />
  * <b>NOTE:</b> {@link #init(ImageLoaderConfiguration)} method must be called before any other method.
  *
+ *
+ * 其实这个类 没有什么太多的东西  就是一个封装入口
+ *
+ * 同时还是个单例
+ *
+ * 一些 获取信息的方法 ,大部分的信息 都是  configuration 和 engine 中
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */
@@ -95,7 +102,9 @@ public class ImageLoader {
 		}
 		if (this.configuration == null) {
 			L.d(LOG_INIT_CONFIG);
+			// 装载 图片加载引擎 配置 也是 configuration来的
 			engine = new ImageLoaderEngine(configuration);
+			// 设置参数配置
 			this.configuration = configuration;
 		} else {
 			L.w(WARNING_RE_INIT_CONFIG);
@@ -210,17 +219,26 @@ public class ImageLoader {
 	}
 
 	/**
+	 *
+	 * 显示图片的方法入口
+	 *
 	 * Adds display image task to execution pool. Image will be set to ImageAware when it's turn.<br />
 	 * <b>NOTE:</b> {@link #init(ImageLoaderConfiguration)} method must be called before this method call
 	 *
 	 * @param uri              Image URI (i.e. "http://site.com/image.png", "file:///mnt/sdcard/image.png")
 	 * @param imageAware       {@linkplain com.nostra13.universalimageloader.core.imageaware.ImageAware Image aware view}
 	 *                         which should display image
+	 *                         我们一般传过来的是 ImageView  可以找到相应的重载方法
+	 *                         但是跟下去看 会发现 有一步是  new ImageViewAware(imageView) 处理了一下
+	 *
 	 * @param options          {@linkplain com.nostra13.universalimageloader.core.DisplayImageOptions Options} for image
 	 *                         decoding and displaying. If <b>null</b> - default display image options
 	 *                         {@linkplain ImageLoaderConfiguration.Builder#defaultDisplayImageOptions(DisplayImageOptions)
 	 *                         from configuration} will be used.
 	 * @param targetSize       {@linkplain ImageSize} Image target size. If <b>null</b> - size will depend on the view
+	 *                         这个多数情况下 null 更具View 来定制
+	 *
+	 *
 	 * @param listener         {@linkplain ImageLoadingListener Listener} for image loading process. Listener fires
 	 *                         events on UI thread if this method is called on UI thread.
 	 * @param progressListener {@linkplain com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener
@@ -238,59 +256,89 @@ public class ImageLoader {
 			throw new IllegalArgumentException(ERROR_WRONG_ARGUMENTS);
 		}
 		if (listener == null) {
+			// 有默认的监听器
 			listener = defaultListener;
 		}
 		if (options == null) {
+			// 默认的配置参数 TODO displayImage 默认的配置参数
 			options = configuration.defaultDisplayImageOptions;
 		}
 
 		if (TextUtils.isEmpty(uri)) {
+			// 如果 地址为空
+			// 取消显示任务
 			engine.cancelDisplayTaskFor(imageAware);
+			// 回调监听器 开始加载图片
 			listener.onLoadingStarted(uri, imageAware.getWrappedView());
 			if (options.shouldShowImageForEmptyUri()) {
+				// 判断配置参数走 是否有设置 空Url 显示图片
 				imageAware.setImageDrawable(options.getImageForEmptyUri(configuration.resources));
 			} else {
+				// 如果没有 则设置 drawable为 null
 				imageAware.setImageDrawable(null);
 			}
+			// 回调监听器 图片加载完成
 			listener.onLoadingComplete(uri, imageAware.getWrappedView(), null);
 			return;
 		}
 
+		// 如果 参数中的 大小为空,  多数情况下是为空
 		if (targetSize == null) {
+			// 通过ImageView 读取代销 同时 还给了 默认的最大的 宽高 是屏幕宽高
+			//TODO 可以理解在 在使用 wrap_content 的时候 是使用的最大宽高?
 			targetSize = ImageSizeUtils.defineTargetSizeForView(imageAware, configuration.getMaxImageSize());
 		}
+		// 生成一个 MemoryCache key  key 是更具 url 和 大小生成的
 		String memoryCacheKey = MemoryCacheUtils.generateKey(uri, targetSize);
+		// 加载引擎  把 ViewId 和 刚刚生成的 key 存入map 中
 		engine.prepareDisplayTaskFor(imageAware, memoryCacheKey);
-
+		// 回调 开始 加载图片
 		listener.onLoadingStarted(uri, imageAware.getWrappedView());
 
+		// 更具上面生成的 key 在memoryCache 中 查找 获取Bitmap
 		Bitmap bmp = configuration.memoryCache.get(memoryCacheKey);
 		if (bmp != null && !bmp.isRecycled()) {
+			// 如果找到了 且没有被回收
 			L.d(LOG_LOAD_IMAGE_FROM_MEMORY_CACHE, memoryCacheKey);
 
 			if (options.shouldPostProcess()) {
+				// 判断 是否需要对 图片进行处理
+				// new 一个 ImageLoadingInfo 对象, 该类没有其他方法 就一个构造方法 而且是final  更多的是用来对于 信息的保存 成员变量类型都 default
+				// engine.getLockForUri(uri) 是获取锁 不同于 Syn 的锁, 这种锁性能更好, 更有扩展性, 但是也要慎用
 				ImageLoadingInfo imageLoadingInfo = new ImageLoadingInfo(uri, imageAware, targetSize, memoryCacheKey,
 						options, listener, progressListener, engine.getLockForUri(uri));
+				// new 一个 处理和显示图片的task
 				ProcessAndDisplayImageTask displayTask = new ProcessAndDisplayImageTask(engine, bmp, imageLoadingInfo,
 						defineHandler(options));
 				if (options.isSyncLoading()) {
+					//TODO 这里 判断是不是 异步 更多的是 在加载图片 之前 是不是 就已经是 其他线程了 这样 就不需要在同 引擎的线程池做处理了?
+					//如果是 异步读取的话 默认是false
 					displayTask.run();
 				} else {
+					// 把任务提交给引擎
 					engine.submit(displayTask);
 				}
 			} else {
+				// 如果不需再处理  图片了
+				// 获取 getDisplayer 默认的是 SimpleBitmapDisplayer  还有些 渐隐渐现什么的
 				options.getDisplayer().display(bmp, imageAware, LoadedFrom.MEMORY_CACHE);
 				listener.onLoadingComplete(uri, imageAware.getWrappedView(), bmp);
 			}
 		} else {
 			if (options.shouldShowImageOnLoading()) {
+				// 判断是否 需要在loading的时候显示图片
+				// 设置 loading 状态的图片
 				imageAware.setImageDrawable(options.getImageOnLoading(configuration.resources));
 			} else if (options.isResetViewBeforeLoading()) {
+				// 如果需要 在读取图片执勤啊 reset View 那么 设置 Drawable为null
 				imageAware.setImageDrawable(null);
 			}
 
+			// new 一个 图片信息
 			ImageLoadingInfo imageLoadingInfo = new ImageLoadingInfo(uri, imageAware, targetSize, memoryCacheKey,
 					options, listener, progressListener, engine.getLockForUri(uri));
+			// new 一个 加载和显示图片的 任务
+			// 一个没有 缓存的图片 加载入口在这里
 			LoadAndDisplayImageTask displayTask = new LoadAndDisplayImageTask(engine, imageLoadingInfo,
 					defineHandler(options));
 			if (options.isSyncLoading()) {
@@ -495,6 +543,10 @@ public class ImageLoader {
 	 * <br />
 	 * <b>NOTE:</b> {@link #init(ImageLoaderConfiguration)} method must be called before this method call
 	 *
+	 * 加载 一张图片 并放入缓存
+	 *
+	 * 在 listener 的完成回调中 会返回相应的bitmap
+	 *
 	 * @param uri              Image URI (i.e. "http://site.com/image.png", "file:///mnt/sdcard/image.png")
 	 * @param targetImageSize  Minimal size for {@link Bitmap} which will be returned in
 	 *                         {@linkplain ImageLoadingListener#onLoadingComplete(String, android.view.View,
@@ -523,7 +575,7 @@ public class ImageLoader {
 		if (options == null) {
 			options = configuration.defaultDisplayImageOptions;
 		}
-
+		// 其实就是去显示 图片 不过 imageAware 是一个 NonViewAware 然后图片大小如果没有设置的话 就是默认的最大
 		NonViewAware imageAware = new NonViewAware(uri, targetImageSize, ViewScaleType.CROP);
 		displayImage(uri, imageAware, options, listener, progressListener);
 	}
@@ -579,6 +631,11 @@ public class ImageLoader {
 
 	/**
 	 * Loads and decodes image synchronously.<br />
+	 *
+	 * 同步 读取图片 , 直接读取不同, 不把 图片加载的 任务房屋 加载引擎中,
+	 * 就直接在当前的线程 线性走下来,  可以直接返回 Bitmap
+	 * 注意  这一步 是耗时操作
+	 *
 	 * <b>NOTE:</b> {@link #init(ImageLoaderConfiguration)} method must be called before this method call
 	 *
 	 * @param uri             Image URI (i.e. "http://site.com/image.png", "file:///mnt/sdcard/image.png")
@@ -596,16 +653,20 @@ public class ImageLoader {
 		if (options == null) {
 			options = configuration.defaultDisplayImageOptions;
 		}
+		// 这里 会更具传进来的 options 在处理一下 主要就是 重新设置 一下  syncLoading(true)
 		options = new DisplayImageOptions.Builder().cloneFrom(options).syncLoading(true).build();
 
+		// new 一个 SyncImageLoadingListener
 		SyncImageLoadingListener listener = new SyncImageLoadingListener();
+		// 然后就是不普通的读取 图片, 不过这里设置 了 同步读取 , 那么 在loadImage displayImage 放纵就不会把任务放到 加载引擎中 而是直接执行
+		// 对了这样 确实就可以 实时的 获取 Bitmap 了 就不需要通过回调了
 		loadImage(uri, targetImageSize, options, listener);
 		return listener.getLoadedBitmap();
 	}
 
 	/**
 	 * Checks if ImageLoader's configuration was initialized
-	 *
+	 *	检查 configuration 配置
 	 * @throws IllegalStateException if configuration wasn't initialized
 	 */
 	private void checkConfiguration() {
@@ -684,6 +745,8 @@ public class ImageLoader {
 	/**
 	 * Returns URI of image which is loading at this moment into passed
 	 * {@link com.nostra13.universalimageloader.core.imageaware.ImageAware ImageAware}
+	 *
+	 * 获取 包装 View 对应的 Uri
 	 */
 	public String getLoadingUriForView(ImageAware imageAware) {
 		return engine.getLoadingUriForView(imageAware);
@@ -700,6 +763,8 @@ public class ImageLoader {
 	/**
 	 * Cancel the task of loading and displaying image for passed
 	 * {@link com.nostra13.universalimageloader.core.imageaware.ImageAware ImageAware}.
+	 *
+	 * 取消 当前 View 的读取 图片的任务
 	 *
 	 * @param imageAware {@link com.nostra13.universalimageloader.core.imageaware.ImageAware ImageAware} for
 	 *                   which display task will be cancelled
@@ -725,6 +790,8 @@ public class ImageLoader {
 	 * {@link ImageLoadingListener#onLoadingFailed(String, View, FailReason)} callback will be fired with
 	 * {@link FailReason.FailType#NETWORK_DENIED}
 	 *
+	 * 拒绝 或 运行 ImageLoader 能否从网络上下载图片
+	 *
 	 * @param denyNetworkDownloads pass <b>true</b> - to deny engine to download images from the network; <b>false</b> -
 	 *                             to allow engine to download images from network.
 	 */
@@ -736,8 +803,12 @@ public class ImageLoader {
 	 * Sets option whether ImageLoader will use {@link FlushedInputStream} for network downloads to handle <a
 	 * href="http://code.google.com/p/android/issues/detail?id=6066">this known problem</a> or not.
 	 *
+	 * 是否是 慢速网络 如果设置的是 处理慢速网络的是 那么 下载数据 就会使用 FlushedInputStream
+	 *
 	 * @param handleSlowNetwork pass <b>true</b> - to use {@link FlushedInputStream} for network downloads; <b>false</b>
 	 *                          - otherwise.
+	 *
+	 *
 	 */
 	public void handleSlowNetwork(boolean handleSlowNetwork) {
 		engine.handleSlowNetwork(handleSlowNetwork);
@@ -781,11 +852,19 @@ public class ImageLoader {
 		configuration = null;
 	}
 
+	/**
+	 * 获取Handle
+	 * @param options
+	 * @return
+	 */
 	private static Handler defineHandler(DisplayImageOptions options) {
+		// 获取 options 中的Handler 多少情况为空
 		Handler handler = options.getHandler();
 		if (options.isSyncLoading()) {
+			// 如果是 同步读取的不需要 handler 通知其他线程
 			handler = null;
 		} else if (handler == null && Looper.myLooper() == Looper.getMainLooper()) {
+			// 如果当期那是在 主线程的话 那么 需要 自己 new一个Handle
 			handler = new Handler();
 		}
 		return handler;
@@ -794,6 +873,7 @@ public class ImageLoader {
 	/**
 	 * Listener which is designed for synchronous image loading.
 	 *
+	 * 同步读取图片 Listener
 	 * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
 	 * @since 1.9.0
 	 */

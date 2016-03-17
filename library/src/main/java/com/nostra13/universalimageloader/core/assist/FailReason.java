@@ -18,6 +18,7 @@ package com.nostra13.universalimageloader.core.assist;
 /**
  * Presents the reason why image loading and displaying was failed
  *
+ * 失败原因类
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */

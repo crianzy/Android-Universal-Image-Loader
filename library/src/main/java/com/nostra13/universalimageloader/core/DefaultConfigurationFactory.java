@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Factory for providing of default options for {@linkplain ImageLoaderConfiguration configuration}
  *
+ * 默认配置的 工厂 方法
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.5.6
  */

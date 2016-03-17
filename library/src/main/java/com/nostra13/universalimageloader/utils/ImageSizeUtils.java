@@ -36,6 +36,7 @@ public final class ImageSizeUtils {
 	private static ImageSize maxBitmapSize;
 
 	static {
+		//这里 获取纹理的最大 分辨率
 		int[] maxTextureSize = new int[1];
 		GLES10.glGetIntegerv(GL10.GL_MAX_TEXTURE_SIZE, maxTextureSize, 0);
 		int maxBitmapDimension = Math.max(maxTextureSize[0], DEFAULT_MAX_BITMAP_DIMENSION);
@@ -49,9 +50,13 @@ public final class ImageSizeUtils {
 	 * Defines target size for image aware view. Size is defined by target
 	 * {@link com.nostra13.universalimageloader.core.imageaware.ImageAware view} parameters, configuration
 	 * parameters or device display dimensions.<br />
+	 *
+	 * 获取 相应的View 的宽高
+	 *
 	 */
 	public static ImageSize defineTargetSizeForView(ImageAware imageAware, ImageSize maxImageSize) {
 		int width = imageAware.getWidth();
+		// 如果小于0  着用 最大宽高
 		if (width <= 0) width = maxImageSize.getWidth();
 
 		int height = imageAware.getHeight();
@@ -98,24 +103,30 @@ public final class ImageSizeUtils {
 
 		switch (viewScaleType) {
 			case FIT_INSIDE:
+				// 适应类型 即 会显示全部的图片 但是 不能填充满整个View
 				if (powerOf2Scale) {
+					// 如果是 每次缩小两倍
 					final int halfWidth = srcWidth / 2;
 					final int halfHeight = srcHeight / 2;
 					while ((halfWidth / scale) > targetWidth || (halfHeight / scale) > targetHeight) { // ||
 						scale *= 2;
 					}
 				} else {
+					//不是 每次缩小两倍的话  找个 最大 宽高缩放比比
 					scale = Math.max(srcWidth / targetWidth, srcHeight / targetHeight); // max
 				}
 				break;
 			case CROP:
+				// 裁切类型  能够填充满 整个View  但是有部分图片呗切掉了
 				if (powerOf2Scale) {
 					final int halfWidth = srcWidth / 2;
 					final int halfHeight = srcHeight / 2;
+					// 这里 是且    上面是 或
 					while ((halfWidth / scale) > targetWidth && (halfHeight / scale) > targetHeight) { // &&
 						scale *= 2;
 					}
 				} else {
+					// 这里找最小的缩放比
 					scale = Math.min(srcWidth / targetWidth, srcHeight / targetHeight); // min
 				}
 				break;
@@ -124,14 +135,24 @@ public final class ImageSizeUtils {
 		if (scale < 1) {
 			scale = 1;
 		}
+		// 再次确定一下 缩放比例
 		scale = considerMaxTextureSize(srcWidth, srcHeight, scale, powerOf2Scale);
 
 		return scale;
 	}
 
+	/**
+	 * 再次确定 一下 缩放比例 腰包在 宽高 要比最大值值的小
+	 * @param srcWidth
+	 * @param srcHeight
+	 * @param scale
+	 * @param powerOf2
+	 * @return
+	 */
 	private static int considerMaxTextureSize(int srcWidth, int srcHeight, int scale, boolean powerOf2) {
 		final int maxWidth = maxBitmapSize.getWidth();
 		final int maxHeight = maxBitmapSize.getHeight();
+		// 如果比最大值 还大的话 还需要缩小
 		while ((srcWidth / scale) > maxWidth || (srcHeight / scale) > maxHeight) {
 			if (powerOf2) {
 				scale *= 2;
@@ -147,6 +168,10 @@ public final class ImageSizeUtils {
 	 * texture size.<br />
 	 * We can't create Bitmap in memory with size exceed max texture size (usually this is 2048x2048) so this method
 	 * calculate minimal sample size which should be applied to image to fit into these limits.
+	 *
+	 * 计算最小缩放倍数
+	 *
+	 * maxBitmapSize 是纹理的最大分辨率
 	 *
 	 * @param srcSize Original image size
 	 * @return Minimal sample size
@@ -183,6 +208,7 @@ public final class ImageSizeUtils {
 	 * @param viewScaleType {@linkplain ViewScaleType Scale type} for placing image in view
 	 * @param stretch       Whether source size should be stretched if target size is larger than source size. If <b>false</b>
 	 *                      then result scale value can't be greater than 1.
+	 *                      是否拉伸
 	 * @return Computed scale
 	 */
 	public static float computeImageScale(ImageSize srcSize, ImageSize targetSize, ViewScaleType viewScaleType,

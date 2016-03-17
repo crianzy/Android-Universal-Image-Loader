@@ -31,6 +31,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <b>NOTE:</b> This cache uses strong and weak references for stored Bitmaps. Strong references - for limited count of
  * Bitmaps (depends on cache size), weak references - for all other cached Bitmaps.
  *
+ *
+ * 有限制的缓存,  提供存储 对象
+ * 所保存的 Bitmap 不能 大于  getSizeLimit()
+ *
+ * 这个缓存使用 强引用 和 弱应用
+ *
+ * 强引用的数量限制 却取决于 缓存代销
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseMemoryCache
  * @since 1.0.0
@@ -40,6 +48,9 @@ public abstract class LimitedMemoryCache extends BaseMemoryCache {
 	private static final int MAX_NORMAL_CACHE_SIZE_IN_MB = 16;
 	private static final int MAX_NORMAL_CACHE_SIZE = MAX_NORMAL_CACHE_SIZE_IN_MB * 1024 * 1024;
 
+	/**
+	 * 缓存的最大值
+	 */
 	private final int sizeLimit;
 
 	private final AtomicInteger cacheSize;
@@ -48,6 +59,7 @@ public abstract class LimitedMemoryCache extends BaseMemoryCache {
 	 * Contains strong references to stored objects. Each next object is added last. If hard cache size will exceed
 	 * limit then first object is deleted (but it continue exist at {@link #softMap} and can be collected by GC at any
 	 * time)
+	 * 强引用 lsit
 	 */
 	private final List<Bitmap> hardCache = Collections.synchronizedList(new LinkedList<Bitmap>());
 
@@ -68,7 +80,14 @@ public abstract class LimitedMemoryCache extends BaseMemoryCache {
 		int sizeLimit = getSizeLimit();
 		int curCacheSize = cacheSize.get();
 		if (valueSize < sizeLimit) {
+			// 如果图片的缓存小于 最大值
+
+			// 这里循环逻辑是
+			// 如果当期那 缓存 加上 这张Bitmap 的缓存大于 最大限制的话
+			// 那么就从强应用中 取走一个 Bitmap 独享
+			// 取走的规则  由之类来决定
 			while (curCacheSize + valueSize > sizeLimit) {
+
 				Bitmap removedValue = removeNext();
 				if (hardCache.remove(removedValue)) {
 					curCacheSize = cacheSize.addAndGet(-getSize(removedValue));

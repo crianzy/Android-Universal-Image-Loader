@@ -21,6 +21,7 @@ import java.io.InputStream;
 /**
  * Decorator for {@link java.io.InputStream InputStream}. Provides possibility to return defined stream length by
  * {@link #available()} method.
+ * 再次把 InputStream 包装了一下 主要是 加入了 length
  *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com), Mariotaku
  * @since 1.9.1

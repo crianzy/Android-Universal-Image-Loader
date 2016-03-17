@@ -60,22 +60,31 @@ final class DisplayBitmapTask implements Runnable {
 	@Override
 	public void run() {
 		if (imageAware.isCollected()) {
+			// 是否 被回收?
 			L.d(LOG_TASK_CANCELLED_IMAGEAWARE_COLLECTED, memoryCacheKey);
+			// 回调取消
 			listener.onLoadingCancelled(imageUri, imageAware.getWrappedView());
 		} else if (isViewWasReused()) {
 			L.d(LOG_TASK_CANCELLED_IMAGEAWARE_REUSED, memoryCacheKey);
 			listener.onLoadingCancelled(imageUri, imageAware.getWrappedView());
 		} else {
 			L.d(LOG_DISPLAY_IMAGE_IN_IMAGEAWARE, loadedFrom, memoryCacheKey);
+			// displayer 去显示图片
 			displayer.display(bitmap, imageAware, loadedFrom);
+
+			// 删除 engine 保存的 view  key map 中对应记录
 			engine.cancelDisplayTaskFor(imageAware);
+			// 回调图片读取完成
 			listener.onLoadingComplete(imageUri, imageAware.getWrappedView(), bitmap);
 		}
 	}
 
-	/** Checks whether memory cache key (image URI) for current ImageAware is actual */
+	/** Checks whether memory cache key (image URI) for current ImageAware is actual
+	 * */
 	private boolean isViewWasReused() {
 		String currentCacheKey = engine.getLoadingUriForView(imageAware);
+		// 检查两个key 是否一样
+		//TODO  是否 在 ListView 快速滑动的时候是后会 出啊先 不一样的情况
 		return !memoryCacheKey.equals(currentCacheKey);
 	}
 }

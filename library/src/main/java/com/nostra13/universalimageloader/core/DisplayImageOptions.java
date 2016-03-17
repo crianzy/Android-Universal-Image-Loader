@@ -196,10 +196,12 @@ public final class DisplayImageOptions {
 
 	/**
 	 * Builder for {@link DisplayImageOptions}
+	 * 在调用Imageloader 的displayImage 方法的时候 需要传入 DisplayImageOptions 参数
 	 *
 	 * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
 	 */
 	public static class Builder {
+		// 这些参数都有设置 默认值
 		private int imageResOnLoading = 0;
 		private int imageResForEmptyUri = 0;
 		private int imageResOnFail = 0;
@@ -237,6 +239,8 @@ public final class DisplayImageOptions {
 		 * Incoming image will be displayed in {@link com.nostra13.universalimageloader.core.imageaware.ImageAware
 		 * image aware view} during image loading
 		 *
+		 * 设置 loading 的是显示的图片 resId
+		 *
 		 * @param imageRes Image resource
 		 */
 		public Builder showImageOnLoading(int imageRes) {
@@ -248,6 +252,8 @@ public final class DisplayImageOptions {
 		 * Incoming drawable will be displayed in {@link com.nostra13.universalimageloader.core.imageaware.ImageAware
 		 * image aware view} during image loading.
 		 * This option will be ignored if {@link DisplayImageOptions.Builder#showImageOnLoading(int)} is set.
+		 *
+		 * 设置 loading 的是显示的图片 Drawable
 		 */
 		public Builder showImageOnLoading(Drawable drawable) {
 			imageOnLoading = drawable;
@@ -258,6 +264,8 @@ public final class DisplayImageOptions {
 		 * Incoming image will be displayed in {@link com.nostra13.universalimageloader.core.imageaware.ImageAware
 		 * image aware view} if empty URI (null or empty
 		 * string) will be passed to <b>ImageLoader.displayImage(...)</b> method.
+		 *
+		 * 当 uri 为空时 显示的图片资源ID
 		 *
 		 * @param imageRes Image resource
 		 */
@@ -271,6 +279,8 @@ public final class DisplayImageOptions {
 		 * image aware view} if empty URI (null or empty
 		 * string) will be passed to <b>ImageLoader.displayImage(...)</b> method.
 		 * This option will be ignored if {@link DisplayImageOptions.Builder#showImageForEmptyUri(int)} is set.
+		 *
+		 * 当 uri 为空时 显示的图片 drawable
 		 */
 		public Builder showImageForEmptyUri(Drawable drawable) {
 			imageForEmptyUri = drawable;
@@ -282,6 +292,7 @@ public final class DisplayImageOptions {
 		 * image aware view} if some error occurs during
 		 * requested image loading/decoding.
 		 *
+		 * 当显示图片失败时 显示 图片资源id
 		 * @param imageRes Image resource
 		 */
 		public Builder showImageOnFail(int imageRes) {
@@ -294,6 +305,8 @@ public final class DisplayImageOptions {
 		 * image aware view} if some error occurs during
 		 * requested image loading/decoding.
 		 * This option will be ignored if {@link DisplayImageOptions.Builder#showImageOnFail(int)} is set.
+		 *
+		 * 当显示图片失败时 显示 图片 drawable
 		 */
 		public Builder showImageOnFail(Drawable drawable) {
 			imageOnFail = drawable;
@@ -314,6 +327,9 @@ public final class DisplayImageOptions {
 		/**
 		 * Sets whether {@link com.nostra13.universalimageloader.core.imageaware.ImageAware
 		 * image aware view} will be reset (set <b>null</b>) before image loading start
+		 *
+		 * 设置是否 resetView 在loading前
+		 *
 		 */
 		public Builder resetViewBeforeLoading(boolean resetViewBeforeLoading) {
 			this.resetViewBeforeLoading = resetViewBeforeLoading;
@@ -331,7 +347,10 @@ public final class DisplayImageOptions {
 			return this;
 		}
 
-		/** Sets whether loaded image will be cached in memory */
+		/** Sets whether loaded image will be cached in memory
+		 *
+		 * 设置显示的图片 是否缓存到 内存中
+		 * */
 		public Builder cacheInMemory(boolean cacheInMemory) {
 			this.cacheInMemory = cacheInMemory;
 			return this;
@@ -357,7 +376,10 @@ public final class DisplayImageOptions {
 			return cacheOnDisk(cacheOnDisk);
 		}
 
-		/** Sets whether loaded image will be cached on disk */
+		/** Sets whether loaded image will be cached on disk
+		 *
+		 * 是在是否缓存到磁盘中
+		 * */
 		public Builder cacheOnDisk(boolean cacheOnDisk) {
 			this.cacheOnDisk = cacheOnDisk;
 			return this;
@@ -366,13 +388,18 @@ public final class DisplayImageOptions {
 		/**
 		 * Sets {@linkplain ImageScaleType scale type} for decoding image. This parameter is used while define scale
 		 * size for decoding image to Bitmap. Default value - {@link ImageScaleType#IN_SAMPLE_POWER_OF_2}
+		 *
+		 * 设置 显示图片时的缩放类型
 		 */
 		public Builder imageScaleType(ImageScaleType imageScaleType) {
 			this.imageScaleType = imageScaleType;
 			return this;
 		}
 
-		/** Sets {@link Bitmap.Config bitmap config} for image decoding. Default value - {@link Bitmap.Config#ARGB_8888} */
+		/** Sets {@link Bitmap.Config bitmap config} for image decoding. Default value - {@link Bitmap.Config#ARGB_8888}
+		 *
+		 * 设置 Bitmap的配置 默认是 Bitmap.Config#ARGB_8888
+		 * */
 		public Builder bitmapConfig(Bitmap.Config bitmapConfig) {
 			if (bitmapConfig == null) throw new IllegalArgumentException("bitmapConfig can't be null");
 			decodingOptions.inPreferredConfig = bitmapConfig;
@@ -386,6 +413,8 @@ public final class DisplayImageOptions {
 		 * options.<br />
 		 * <b>NOTE:</b> This option overlaps {@link #bitmapConfig(android.graphics.Bitmap.Config) bitmapConfig()}
 		 * option.
+		 *
+		 * 设置 图片的 编码参数
 		 */
 		public Builder decodingOptions(Options decodingOptions) {
 			if (decodingOptions == null) throw new IllegalArgumentException("decodingOptions can't be null");
@@ -393,19 +422,28 @@ public final class DisplayImageOptions {
 			return this;
 		}
 
-		/** Sets delay time before starting loading task. Default - no delay. */
+		/** Sets delay time before starting loading task. Default - no delay.
+		 *
+		 * 设置 延迟loading的时长
+		 * */
 		public Builder delayBeforeLoading(int delayInMillis) {
 			this.delayBeforeLoading = delayInMillis;
 			return this;
 		}
 
-		/** Sets auxiliary object which will be passed to {@link ImageDownloader#getStream(String, Object)} */
+		/** Sets auxiliary object which will be passed to {@link ImageDownloader#getStream(String, Object)}
+		 *
+		 * 下载图片如果需要一些参数 , 可以通过这个方法第
+		 * */
 		public Builder extraForDownloader(Object extra) {
 			this.extraForDownloader = extra;
 			return this;
 		}
 
-		/** Sets whether ImageLoader will consider EXIF parameters of JPEG image (rotate, flip) */
+		/** Sets whether ImageLoader will consider EXIF parameters of JPEG image (rotate, flip)
+		 *
+		 * 设置是否 包含 Exif 参数
+		 * */
 		public Builder considerExifParams(boolean considerExifParams) {
 			this.considerExifParams = considerExifParams;
 			return this;
@@ -415,6 +453,8 @@ public final class DisplayImageOptions {
 		 * Sets bitmap processor which will be process bitmaps before they will be cached in memory. So memory cache
 		 * will contain bitmap processed by incoming preProcessor.<br />
 		 * Image will be pre-processed even if caching in memory is disabled.
+		 *
+		 * 设置Bitmap 处理过程 在 缓存到内存之前 的处理
 		 */
 		public Builder preProcessor(BitmapProcessor preProcessor) {
 			this.preProcessor = preProcessor;
@@ -425,6 +465,8 @@ public final class DisplayImageOptions {
 		 * Sets bitmap processor which will be process bitmaps before they will be displayed in
 		 * {@link com.nostra13.universalimageloader.core.imageaware.ImageAware image aware view} but
 		 * after they'll have been saved in memory cache.
+		 *
+		 * 设置 在 显示到View 之前的 图片处理过程
 		 */
 		public Builder postProcessor(BitmapProcessor postProcessor) {
 			this.postProcessor = postProcessor;
@@ -434,6 +476,8 @@ public final class DisplayImageOptions {
 		/**
 		 * Sets custom {@link BitmapDisplayer displayer} for image loading task. Default value -
 		 * {@link DefaultConfigurationFactory#createBitmapDisplayer()}
+		 *
+		 * 设置 BitmapDisplayer 圆形 渐隐渐现 各种
 		 */
 		public Builder displayer(BitmapDisplayer displayer) {
 			if (displayer == null) throw new IllegalArgumentException("displayer can't be null");
@@ -441,6 +485,11 @@ public final class DisplayImageOptions {
 			return this;
 		}
 
+		/**
+		 * 设置 是否直接 在当前线程 执行 下载和显示任务
+		 * @param isSyncLoading
+		 * @return
+		 */
 		Builder syncLoading(boolean isSyncLoading) {
 			this.isSyncLoading = isSyncLoading;
 			return this;
@@ -455,7 +504,11 @@ public final class DisplayImageOptions {
 			return this;
 		}
 
-		/** Sets all options equal to incoming options */
+		/** Sets all options equal to incoming options
+		 *
+		 * 通过 options 重新clone 出 一个builder
+		 *
+		 * */
 		public Builder cloneFrom(DisplayImageOptions options) {
 			imageResOnLoading = options.imageResOnLoading;
 			imageResForEmptyUri = options.imageResForEmptyUri;
@@ -497,6 +550,12 @@ public final class DisplayImageOptions {
 	 * </ul>
 	 * <p/>
 	 * These option are appropriate for simple single-use image (from drawables or from Internet) displaying.
+	 *
+	 * 创建一个默认的 简单的 options
+	 * 默认的 不会缓存
+	 *
+	 * 所以 还是没出 自己 build 一个来的好些
+	 *
 	 */
 	public static DisplayImageOptions createSimple() {
 		return new Builder().build();

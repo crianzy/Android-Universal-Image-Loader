@@ -28,23 +28,56 @@ import com.nostra13.universalimageloader.core.download.ImageDownloader;
 /**
  * Contains needed information for decoding image to Bitmap
  *
+ * 图片 编码信息
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.8.3
  */
 public class ImageDecodingInfo {
 
+	/**
+	 * 缓存key
+	 */
 	private final String imageKey;
+	/**
+	 * 处理包装后的图片url
+	 */
 	private final String imageUri;
+	/**
+	 * 原始图片 url
+	 */
 	private final String originalImageUri;
+	/**
+	 * 图片大小
+	 */
 	private final ImageSize targetSize;
 
+	/**
+	 * 图片缩放类型
+	 */
 	private final ImageScaleType imageScaleType;
+	/**
+	 * View 缩放类型 两种 FIT_INSIDE  和 CROP
+	 */
 	private final ViewScaleType viewScaleType;
 
+	/**
+	 * 图片下载器
+	 */
 	private final ImageDownloader downloader;
+	/**
+	 * 额外的 uri 参数
+	 */
 	private final Object extraForDownloader;
 
+	/**
+	 * 是否包含 exif 参数
+	 */
 	private final boolean considerExifParams;
+
+	/**
+	 * 图片显示参数 不是之前的 DisplayImageOption
+	 */
 	private final Options decodingOptions;
 
 	public ImageDecodingInfo(String imageKey, String imageUri, String originalImageUri, ImageSize targetSize, ViewScaleType viewScaleType,
