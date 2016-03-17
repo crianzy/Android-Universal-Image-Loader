@@ -58,5 +58,8 @@ public class UILApplication extends Application {
 
 		// Initialize ImageLoader with configuration.
 		ImageLoader.getInstance().init(config.build());
+
+
+
 	}
 }
