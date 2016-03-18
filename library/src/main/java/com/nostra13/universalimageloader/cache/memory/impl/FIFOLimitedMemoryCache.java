@@ -31,6 +31,17 @@ import java.util.List;
  * <b>NOTE:</b> This cache uses strong and weak references for stored Bitmaps. Strong references - for limited count of
  * Bitmaps (depends on cache size), weak references - for all other cached Bitmaps.
  *
+ *
+ * 先进先出 缓存  继承 限制大小的 缓存
+ *
+ * 没有重写 get 方法
+ * 那么 get 的话 还是 从 baseMemoryCache 中的 软引用获取
+ *
+ *
+ * 这个 先进先出
+ * 指的是 当内存不足的时候 , 是从头开始删除 Bitmap
+ * 即 先存放进来的 Bitmap  先被删除
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */
@@ -44,6 +55,7 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache {
 
 	@Override
 	public boolean put(String key, Bitmap value) {
+		// 先调用 父类的put  如果父类put 成功 再把Bitmap 存到自己的对了中
 		if (super.put(key, value)) {
 			queue.add(value);
 			return true;
@@ -74,11 +86,13 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache {
 
 	@Override
 	protected Bitmap removeNext() {
+		//  这个貌似 好像是 list 的唯一 用处 去 删除到 最先放进去的
 		return queue.remove(0);
 	}
 
 	@Override
 	protected Reference<Bitmap> createReference(Bitmap value) {
+		// 这里 创建的是 虚引用  当内存不足时就会被情况  这里的应用  主要 存放在 BaseMemoryCache 中的那个 引用集合中
 		return new WeakReference<Bitmap>(value);
 	}
 }

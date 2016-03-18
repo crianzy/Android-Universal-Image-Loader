@@ -34,6 +34,9 @@ import java.util.Set;
  * <b>NOTE:</b> This cache uses strong and weak references for stored Bitmaps. Strong references - for limited count of
  * Bitmaps (depends on cache size), weak references - for all other cached Bitmaps.
  *
+ * 更具 使用频率来删除
+ * 当 达到缓存限制的时候 吧使用次数 底的先删除
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */
@@ -66,6 +69,7 @@ public class UsingFreqLimitedMemoryCache extends LimitedMemoryCache {
 		if (value != null) {
 			Integer usageCount = usingCounts.get(value);
 			if (usageCount != null) {
+				// get 就 使用次数+1
 				usingCounts.put(value, usageCount + 1);
 			}
 		}
@@ -98,6 +102,7 @@ public class UsingFreqLimitedMemoryCache extends LimitedMemoryCache {
 		Bitmap leastUsedValue = null;
 		Set<Entry<Bitmap, Integer>> entries = usingCounts.entrySet();
 		synchronized (usingCounts) {
+			// 获取使用次数最少的
 			for (Entry<Bitmap, Integer> entry : entries) {
 				if (leastUsedValue == null) {
 					leastUsedValue = entry.getKey();

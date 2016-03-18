@@ -196,7 +196,7 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 		// 执行显示图片任务
 		DisplayBitmapTask displayBitmapTask = new DisplayBitmapTask(bmp, imageLoadingInfo, engine, loadedFrom);
 		// 多数情况下 handler 不为空 所以  displayBitmapTask 在主线程中晚餐
-		//TODO 需要测试 displayBitmapTask 是否在主线程中晚餐
+		//TODO 需要测试 displayBitmapTask 是否在主线程中完成
 		runTask(displayBitmapTask, syncLoading, handler, engine);
 	}
 
@@ -267,7 +267,8 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 
 				// 再次检查 view 是否被回收 和View 显示的图片是否被换掉
 				checkTaskNotActual();
-				// 编码处Bitmap
+				//TODO 这里有个问题? 就是我们在
+				// 编码 Bitmap
 				// Scheme.FILE.wrap(imageFile.getAbsolutePath()) 包装成file:///
 				bitmap = decodeImage(Scheme.FILE.wrap(imageFile.getAbsolutePath()));
 			}
@@ -340,7 +341,11 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 				int height = configuration.maxImageHeightForDiskCache;
 				if (width > 0 || height > 0) {
 					L.d(LOG_RESIZE_CACHED_IMAGE_FILE, memoryCacheKey);
-					// 修改保存图片的匡高
+					// 修改保存图片的 宽高, 不是根据 View 的大小来定制的
+					// 而是在  configuration 中指定的 最大 图片宽高
+					// 不会出现 说 一个URI 显示在不同地方 分辨率不用 而需要存储多张图片, 或者说, 只 存储最近使用过的分辨率的那张
+					// 一个URI 只会存储一张 借鉴与  configuration 最大宽高的 图片
+					// 然后 适配每个 View 的显示 缩放 这些 不是 DiskCache 该处理的
 					resizeAndSaveImage(width, height); // TODO : process boolean result
 				}
 			}
@@ -391,7 +396,6 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 			ImageDecodingInfo decodingInfo = new ImageDecodingInfo(memoryCacheKey,
 					Scheme.FILE.wrap(targetFile.getAbsolutePath()), uri, targetImageSize, ViewScaleType.FIT_INSIDE,
 					getDownloader(), specialOptions);
-			//TODO 修改 宽高后的图片 是否存到了磁盘上???  答案是没有
 			// 在 decode 方法中处理后的Bitamp 没有存放到磁盘上
 			Bitmap bmp = decoder.decode(decodingInfo);
 			if (bmp != null && configuration.processorForDiskCache != null) {
@@ -402,6 +406,8 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 				}
 			}
 			if (bmp != null) {
+				// 这里吧 修改 大小后的图片 放到 缓存中
+				// 会 替换 原来下载的图片?
 				saved = configuration.diskCache.save(uri, bmp);
 				bmp.recycle();
 			}

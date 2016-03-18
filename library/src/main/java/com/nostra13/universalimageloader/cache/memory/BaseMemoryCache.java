@@ -30,7 +30,11 @@ import java.util.*;
  */
 public abstract class BaseMemoryCache implements MemoryCache {
 
-	/** Stores not strong references to objects */
+	/** Stores not strong references to objects
+	 *
+	 * 这里存的 是 什么引用类型 (强 软 弱 虚) 取决于   createReference 方法 创建了什么类型的引用
+	 *
+	 * */
 	private final Map<String, Reference<Bitmap>> softMap = Collections.synchronizedMap(new HashMap<String, Reference<Bitmap>>());
 
 	@Override

@@ -38,15 +38,30 @@ import java.io.OutputStream;
 public abstract class BaseDiskCache implements DiskCache {
 	/** {@value */
 	public static final int DEFAULT_BUFFER_SIZE = 32 * 1024; // 32 Kb
-	/** {@value */
+	/**
+	 *
+	 * 默认的图片格式 PNG
+	 * {@value */
 	public static final Bitmap.CompressFormat DEFAULT_COMPRESS_FORMAT = Bitmap.CompressFormat.PNG;
-	/** {@value */
+
+	/**
+	 * 默认存储的图片质量 100
+	 * {@value */
 	public static final int DEFAULT_COMPRESS_QUALITY = 100;
 
 	private static final String ERROR_ARG_NULL = " argument must be not null";
+
+	//文件后缀名
 	private static final String TEMP_IMAGE_POSTFIX = ".tmp";
 
+	/**
+	 * 缓存目录
+	 */
 	protected final File cacheDir;
+
+	/**
+	 * 预备的缓存目录 当 cacheDir不能用是 就用 这个
+	 */
 	protected final File reserveCacheDir;
 
 	protected final FileNameGenerator fileNameGenerator;
@@ -72,6 +87,7 @@ public abstract class BaseDiskCache implements DiskCache {
 	/**
 	 * @param cacheDir          Directory for file caching
 	 * @param reserveCacheDir   null-ok; Reserve directory for file caching. It's used when the primary directory isn't available.
+	 *                          预备的缓存 目录 可以为空
 	 * @param fileNameGenerator {@linkplain com.nostra13.universalimageloader.cache.disc.naming.FileNameGenerator
 	 *                          Name generator} for cached files
 	 */
@@ -98,12 +114,18 @@ public abstract class BaseDiskCache implements DiskCache {
 		return getFile(imageUri);
 	}
 
+	/**
+	 *
+	 * 通过input 流来保存图片
+	 */
 	@Override
 	public boolean save(String imageUri, InputStream imageStream, IoUtils.CopyListener listener) throws IOException {
 		File imageFile = getFile(imageUri);
+		// new 一个tmp 文件
 		File tmpFile = new File(imageFile.getAbsolutePath() + TEMP_IMAGE_POSTFIX);
 		boolean loaded = false;
 		try {
+			// 先把流 读到 tmp 文件中去
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(tmpFile), bufferSize);
 			try {
 				loaded = IoUtils.copyStream(imageStream, os, listener, bufferSize);
@@ -111,16 +133,29 @@ public abstract class BaseDiskCache implements DiskCache {
 				IoUtils.closeSilently(os);
 			}
 		} finally {
+			// 读取成功  然后 吧tmp 文件 重命名为 前面生成的 imageFile
 			if (loaded && !tmpFile.renameTo(imageFile)) {
 				loaded = false;
 			}
 			if (!loaded) {
+				// 保存失败 tmp文件删除
 				tmpFile.delete();
 			}
 		}
 		return loaded;
 	}
 
+	/**
+	 * 把bitmap 保存到文件中区
+	 * 也是 把bitmap 先放大片 tmp 文件中 再改名字
+	 *
+	 * 这里需要注意到
+	 * 同一个 Url 对应的图片 可能在我们显示时 有多中 targetSize
+	 * 但是 前面 在 LoadAndDisplayImageTask resizeAndSaveImage 处理图片只会更具 configuration中 的最大值 来处理
+	 * 然后在存储 这张Bitmap .可能会吧 之前 网上下下来的时候 就缓存的那张图片文件 替换掉
+	 * 与 targetSize 无关
+	 *
+	 */
 	@Override
 	public boolean save(String imageUri, Bitmap bitmap) throws IOException {
 		File imageFile = getFile(imageUri);
@@ -128,6 +163,7 @@ public abstract class BaseDiskCache implements DiskCache {
 		OutputStream os = new BufferedOutputStream(new FileOutputStream(tmpFile), bufferSize);
 		boolean savedSuccessfully = false;
 		try {
+			// 吧bitmap写到流中
 			savedSuccessfully = bitmap.compress(compressFormat, compressQuality, os);
 		} finally {
 			IoUtils.closeSilently(os);
@@ -162,11 +198,16 @@ public abstract class BaseDiskCache implements DiskCache {
 		}
 	}
 
-	/** Returns file object (not null) for incoming image URI. File object can reference to non-existing file. */
+	/** Returns file object (not null) for incoming image URI. File object can reference to non-existing file.
+	 *
+	 * 通过uri 获取相应的文件
+	 * */
 	protected File getFile(String imageUri) {
+		// 获取唯一的文件名
 		String fileName = fileNameGenerator.generate(imageUri);
 		File dir = cacheDir;
 		if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+			// 当前缓存目录不能用了 那么使用 预备缓存目录
 			if (reserveCacheDir != null && (reserveCacheDir.exists() || reserveCacheDir.mkdirs())) {
 				dir = reserveCacheDir;
 			}

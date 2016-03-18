@@ -18,6 +18,7 @@ package com.nostra13.universalimageloader.cache.disc.naming;
 /**
  * Generates names for files at disk cache
  *
+ * 文件名字生成接口
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.3.1
  */

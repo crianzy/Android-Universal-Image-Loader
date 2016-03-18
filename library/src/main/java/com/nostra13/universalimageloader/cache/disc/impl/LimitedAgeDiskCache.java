@@ -30,13 +30,20 @@ import java.util.Map;
 /**
  * Cache which deletes files which were loaded more than defined time. Cache size is unlimited.
  *
+ * 限制的 文件时间的 缓存
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.3.1
  */
 public class LimitedAgeDiskCache extends BaseDiskCache {
 
+	/**
+	 * 文件的最长保存 时间
+	 */
 	private final long maxFileAge;
 
+	/**
+	 * 文件 和 时间的对应的map
+	 */
 	private final Map<File, Long> loadingDates = Collections.synchronizedMap(new HashMap<File, Long>());
 
 	/**
@@ -69,6 +76,8 @@ public class LimitedAgeDiskCache extends BaseDiskCache {
 		this.maxFileAge = maxAge * 1000; // to milliseconds
 	}
 
+	// 获取图片的时候 判断 该图片是否过去
+	// 过期的话  删除该 缓存 图片文件
 	@Override
 	public File get(String imageUri) {
 		File file = super.get(imageUri);
@@ -83,6 +92,7 @@ public class LimitedAgeDiskCache extends BaseDiskCache {
 			}
 
 			if (System.currentTimeMillis() - loadingDate > maxFileAge) {
+				// 过期 删除该文件
 				file.delete();
 				loadingDates.remove(file);
 			} else if (!cached) {
@@ -92,6 +102,7 @@ public class LimitedAgeDiskCache extends BaseDiskCache {
 		return file;
 	}
 
+	// 保存图片的时候 也会记录下时间
 	@Override
 	public boolean save(String imageUri, InputStream imageStream, IoUtils.CopyListener listener) throws IOException {
 		boolean saved = super.save(imageUri, imageStream, listener);
@@ -118,6 +129,7 @@ public class LimitedAgeDiskCache extends BaseDiskCache {
 		loadingDates.clear();
 	}
 
+	// 记录保存图片的时间
 	private void rememberUsage(String imageUri) {
 		File file = getFile(imageUri);
 		long currentTime = System.currentTimeMillis();

@@ -26,6 +26,8 @@ import java.lang.ref.WeakReference;
  * <br />
  * <b>NOTE:</b> This cache uses only weak references for stored Bitmaps.
  *
+ * 直接继承 BaseMemoryCache  使用的是虚引用 没有缓存 大小限制
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.5.3
  */

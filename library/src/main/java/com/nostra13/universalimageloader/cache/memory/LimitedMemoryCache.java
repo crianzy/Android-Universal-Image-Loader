@@ -37,7 +37,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * 这个缓存使用 强引用 和 弱应用
  *
- * 强引用的数量限制 却取决于 缓存代销
+ * 强引用的数量限制 却取决于 缓存大小
+ *
+ * 在put 的时候会 检查 是否超过大小
+ * 并 移除 相关的Bitmap
  *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseMemoryCache
@@ -85,7 +88,7 @@ public abstract class LimitedMemoryCache extends BaseMemoryCache {
 			// 这里循环逻辑是
 			// 如果当期那 缓存 加上 这张Bitmap 的缓存大于 最大限制的话
 			// 那么就从强应用中 取走一个 Bitmap 独享
-			// 取走的规则  由之类来决定
+			// 取走的规则  由子类 removeNext 来决定
 			while (curCacheSize + valueSize > sizeLimit) {
 
 				Bitmap removedValue = removeNext();
@@ -98,11 +101,18 @@ public abstract class LimitedMemoryCache extends BaseMemoryCache {
 
 			putSuccessfully = true;
 		}
-		// Add value to soft cache
+		// 如果内存 充足 且小于 限制 那么  在本来的强引用中会存一份  父类的 软引用 也会存一份
+		// Add value to soft cache 加到 父类的  中 ?
 		super.put(key, value);
 		return putSuccessfully;
 	}
 
+	/**
+	 * 移除 不仅 从自己的 强引用中移除
+	 * 父类的 软引用中也要移除
+	 * @param key
+	 * @return
+	 */
 	@Override
 	public Bitmap remove(String key) {
 		Bitmap value = super.get(key);

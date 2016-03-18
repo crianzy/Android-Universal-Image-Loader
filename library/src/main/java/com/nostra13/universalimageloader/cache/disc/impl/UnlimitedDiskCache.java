@@ -23,6 +23,8 @@ import java.io.File;
  * Default implementation of {@linkplain com.nostra13.universalimageloader.cache.disc.DiskCache disk cache}.
  * Cache size is unlimited.
  *
+ * 没有限制的缓存
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */

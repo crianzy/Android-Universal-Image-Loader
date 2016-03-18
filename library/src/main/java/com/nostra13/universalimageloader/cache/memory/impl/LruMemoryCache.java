@@ -23,6 +23,9 @@ import java.util.Map;
  */
 public class LruMemoryCache implements MemoryCache {
 
+	/**
+	 * LinkedHashMap
+	 */
 	private final LinkedHashMap<String, Bitmap> map;
 
 	private final int maxSize;
@@ -67,7 +70,7 @@ public class LruMemoryCache implements MemoryCache {
 				size -= sizeOf(key, previous);
 			}
 		}
-
+		// 检查是否 超过了最大限制
 		trimToSize(maxSize);
 		return true;
 	}
@@ -75,6 +78,7 @@ public class LruMemoryCache implements MemoryCache {
 	/**
 	 * Remove the eldest entries until the total of remaining entries is at or below the requested size.
 	 *
+	 * 去除 老的 没有使用的 是Bitmap LRU 算法
 	 * @param maxSize the maximum size of the cache before returning. May be -1 to evict even 0-sized elements.
 	 */
 	private void trimToSize(int maxSize) {
@@ -86,16 +90,19 @@ public class LruMemoryCache implements MemoryCache {
 					throw new IllegalStateException(getClass().getName() + ".sizeOf() is reporting inconsistent results!");
 				}
 
+				// 只要 小于最大值 或 已经为空了 就 break
 				if (size <= maxSize || map.isEmpty()) {
 					break;
 				}
 
+				// 直接 取 下一个
 				Map.Entry<String, Bitmap> toEvict = map.entrySet().iterator().next();
 				if (toEvict == null) {
 					break;
 				}
 				key = toEvict.getKey();
 				value = toEvict.getValue();
+				// 删除 对应 Bitmap
 				map.remove(key);
 				size -= sizeOf(key, value);
 			}

@@ -28,6 +28,8 @@ import java.util.Map;
  * Decorator for {@link MemoryCache}. Provides special feature for cache: if some cached object age exceeds defined
  * value then this object will be removed from cache.
  *
+ * 这是个 MemoryCache 装饰类
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see MemoryCache
  * @since 1.3.1
@@ -36,11 +38,19 @@ public class LimitedAgeMemoryCache implements MemoryCache {
 
 	private final MemoryCache cache;
 
+	/**
+	 * 存储的最长时长
+	 */
 	private final long maxAge;
+	/**
+	 * key 和 存放至 集合的时间  map
+	 */
 	private final Map<String, Long> loadingDates = Collections.synchronizedMap(new HashMap<String, Long>());
 
 	/**
+	 * 这是个装饰类
 	 * @param cache  Wrapped memory cache
+	 *               被装饰的 缓存对象
 	 * @param maxAge Max object age <b>(in seconds)</b>. If object age will exceed this value then it'll be removed from
 	 *               cache on next treatment (and therefore be reloaded).
 	 */
@@ -61,6 +71,7 @@ public class LimitedAgeMemoryCache implements MemoryCache {
 	@Override
 	public Bitmap get(String key) {
 		Long loadingDate = loadingDates.get(key);
+		// 在取得时候判断, 如果 该bitmap 存储时间超出限制了, 那么 就移除它
 		if (loadingDate != null && System.currentTimeMillis() - loadingDate > maxAge) {
 			cache.remove(key);
 			loadingDates.remove(key);

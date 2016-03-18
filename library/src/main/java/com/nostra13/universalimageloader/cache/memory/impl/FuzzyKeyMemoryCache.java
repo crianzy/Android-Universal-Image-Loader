@@ -28,6 +28,14 @@ import java.util.Comparator;
  * "equals" keys will be removed from cache before.<br />
  * <b>NOTE:</b> Used for internal needs. Normally you don't need to use this class.
  *
+ * MemoryCache 的一个装饰类, 提供一些不同的功能
+ *
+ * 这里 提供了一个 Comparator<String> 可以自己定义 那种情况下的 key 是相同的
+ * 而不纯粹只是  String 之间的 是否 equals
+ *
+ * 一般不用他
+ *
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */
@@ -36,6 +44,11 @@ public class FuzzyKeyMemoryCache implements MemoryCache {
 	private final MemoryCache cache;
 	private final Comparator<String> keyComparator;
 
+	/**
+	 *
+	 * @param cache  其他 缓存
+	 * @param keyComparator  String的一个 比较器
+	 */
 	public FuzzyKeyMemoryCache(MemoryCache cache, Comparator<String> keyComparator) {
 		this.cache = cache;
 		this.keyComparator = keyComparator;
@@ -47,12 +60,16 @@ public class FuzzyKeyMemoryCache implements MemoryCache {
 		synchronized (cache) {
 			String keyToRemove = null;
 			for (String cacheKey : cache.keys()) {
+				// 这里用 compare 主要是为了可以自定义的 定义 Key 在什么样的状态下 是相同的
+				// 如果 是equals 那么这个类 就没意义了
 				if (keyComparator.compare(key, cacheKey) == 0) {
+					// 找到 之前 "相同的"key了
 					keyToRemove = cacheKey;
 					break;
 				}
 			}
 			if (keyToRemove != null) {
+				// 把 找到的相同的 key 然后remove
 				cache.remove(keyToRemove);
 			}
 		}

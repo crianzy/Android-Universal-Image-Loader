@@ -34,6 +34,9 @@ import java.util.Set;
  * <b>NOTE:</b> This cache uses strong and weak references for stored Bitmaps. Strong references - for limited count of
  * Bitmaps (depends on cache size), weak references - for all other cached Bitmaps.
  *
+ * 也是继承自 LimitedMemoryCache  有限制 的缓存
+ * 这里不同的是, 这里在移除下一个的时候,  会吧 缓存中 大小最大的先移除
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.0.0
  */
@@ -42,6 +45,9 @@ public class LargestLimitedMemoryCache extends LimitedMemoryCache {
 	 * Contains strong references to stored objects (keys) and sizes of the objects. If hard cache
 	 * size will exceed limit then object with the largest size is deleted (but it continue exist at
 	 * {@link #softMap} and can be collected by GC at any time)
+	 *
+	 *
+	 * 存储了 Bitmap 和 Size 的对应关系
 	 */
 	private final Map<Bitmap, Integer> valueSizes = Collections.synchronizedMap(new HashMap<Bitmap, Integer>());
 
@@ -85,6 +91,7 @@ public class LargestLimitedMemoryCache extends LimitedMemoryCache {
 		Bitmap largestValue = null;
 		Set<Entry<Bitmap, Integer>> entries = valueSizes.entrySet();
 		synchronized (valueSizes) {
+			// 这里找到最大的 key
 			for (Entry<Bitmap, Integer> entry : entries) {
 				if (largestValue == null) {
 					largestValue = entry.getKey();
@@ -98,7 +105,11 @@ public class LargestLimitedMemoryCache extends LimitedMemoryCache {
 				}
 			}
 		}
+		// 吧最大 Bitmap 删除
 		valueSizes.remove(largestValue);
+		// 主要 在子类中 只需要  把 自己本类的集合中对应的改值 移除
+		// 这里返回 移除的Bitmap
+		// 父类 会继续 把它从 父类的集合中移除
 		return largestValue;
 	}
 

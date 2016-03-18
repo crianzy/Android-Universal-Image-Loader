@@ -24,6 +24,8 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Names image file as MD5 hash of image URI
  *
+ * MD5 文件名生成器
+ * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.4.0
  */

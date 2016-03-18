@@ -24,6 +24,13 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 /**
+ *
+ * 严格 一行 读取缓存流
+ *
+ * 这个类的作用 是为了 一行一行的读取 数据
+ * 因为 每个缓存 图片数据 都是存在文件中
+ * 一行 一个图片文件路径
+ *
  * Buffers input from an {@link InputStream} for reading lines.
  *
  * <p>This class is used for buffered reading of lines. For purposes of this class, a line ends
@@ -46,6 +53,7 @@ class StrictLineReader implements Closeable {
 	private static final byte LF = (byte) '\n';
 
 	private final InputStream in;
+	// 编码格式
 	private final Charset charset;
 
 	/*
@@ -54,6 +62,8 @@ class StrictLineReader implements Closeable {
 	   * an unterminated line, we set end == -1, otherwise end == pos. If the underlying
 	   * {@code InputStream} throws an {@code IOException}, end may remain as either pos or -1.
 	   */
+
+	// 缓冲大小
 	private byte[] buf;
 	private int pos;
 	private int end;
@@ -117,6 +127,8 @@ class StrictLineReader implements Closeable {
 	 * Reads the next line. A line ends with {@code "\n"} or {@code "\r\n"},
 	 * this end of line marker is not included in the result.
 	 *
+	 * 读取输入流的 一行数据  一行可能是 \n  或 \r\n 结尾
+	 *
 	 * @return the next line from the input.
 	 * @throws IOException for underlying {@code InputStream} errors.
 	 * @throws EOFException for the end of source stream.
@@ -135,7 +147,8 @@ class StrictLineReader implements Closeable {
 			}
 			// Try to find LF in the buffered data and return the line if successful.
 			for (int i = pos; i != end; ++i) {
-				if (buf[i] == LF) {
+				if (buf[i] == LF) {// \n
+					// \r\n  i 不等于 开头 且, 前一个 是 \r 那么表示 结尾是 i-1 否则就是  \n 换行了 结尾就 i
 					int lineEnd = (i != pos && buf[i - 1] == CR) ? i - 1 : i;
 					String res = new String(buf, pos, lineEnd - pos, charset.name());
 					pos = i + 1;
@@ -157,6 +170,7 @@ class StrictLineReader implements Closeable {
 			};
 
 			while (true) {
+				// 吧这一行的数据 写到 ByteArrayOutputStream 中 然后 这个流的String
 				out.write(buf, pos, end - pos);
 				// Mark unterminated line in case fillBuf throws EOFException or IOException.
 				end = -1;

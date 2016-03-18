@@ -32,6 +32,8 @@ import java.io.OutputStream;
  * {@link com.nostra13.universalimageloader.cache.disc.impl.ext.DiskLruCache DiskLruCache} to
  * {@link com.nostra13.universalimageloader.cache.disc.DiskCache DiskCache}
  *
+ * LRU 的磁盘缓存
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see FileNameGenerator
  * @since 1.9.2
@@ -47,7 +49,9 @@ public class LruDiskCache implements DiskCache {
 	private static final String ERROR_ARG_NULL = " argument must be not null";
 	private static final String ERROR_ARG_NEGATIVE = " argument must be positive number";
 
+	// 主要缓存 相关是 这个  DiskLruCache
 	protected DiskLruCache cache;
+	// 预备的的缓存目录
 	private File reserveCacheDir;
 
 	protected final FileNameGenerator fileNameGenerator;
@@ -109,6 +113,7 @@ public class LruDiskCache implements DiskCache {
 	private void initCache(File cacheDir, File reserveCacheDir, long cacheMaxSize, int cacheMaxFileCount)
 			throws IOException {
 		try {
+			// 初始化 缓存 对象
 			cache = DiskLruCache.open(cacheDir, 1, 1, cacheMaxSize, cacheMaxFileCount);
 		} catch (IOException e) {
 			L.e(e);
@@ -130,7 +135,9 @@ public class LruDiskCache implements DiskCache {
 	public File get(String imageUri) {
 		DiskLruCache.Snapshot snapshot = null;
 		try {
+			// 获取文件
 			snapshot = cache.get(getKey(imageUri));
+			// 由于 我们这里 定义的 只有一个文件 所以取第0个就好
 			return snapshot == null ? null : snapshot.getFile(0);
 		} catch (IOException e) {
 			L.e(e);
@@ -144,20 +151,25 @@ public class LruDiskCache implements DiskCache {
 
 	@Override
 	public boolean save(String imageUri, InputStream imageStream, IoUtils.CopyListener listener) throws IOException {
+		// 更具 key 获取一个 Editor
 		DiskLruCache.Editor editor = cache.edit(getKey(imageUri));
 		if (editor == null) {
+			// 如果为空的不缓存
 			return false;
 		}
-
+		// editor.newOutputStream(0) 是 dirtyFile 输出流
 		OutputStream os = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
 		boolean copied = false;
 		try {
+			// 把 输入流写到文件中
 			copied = IoUtils.copyStream(imageStream, os, listener, bufferSize);
 		} finally {
 			IoUtils.closeSilently(os);
 			if (copied) {
+				// 吸入成功
 				editor.commit();
 			} else {
+				// 写入失败
 				editor.abort();
 			}
 		}
@@ -170,10 +182,11 @@ public class LruDiskCache implements DiskCache {
 		if (editor == null) {
 			return false;
 		}
-
+		// editor.newOutputStream(0) 是 dirtyFile 输出流
 		OutputStream os = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
 		boolean savedSuccessfully = false;
 		try {
+			// 把 图片写到文件中
 			savedSuccessfully = bitmap.compress(compressFormat, compressQuality, os);
 		} finally {
 			IoUtils.closeSilently(os);
@@ -220,6 +233,14 @@ public class LruDiskCache implements DiskCache {
 		}
 	}
 
+	/**
+	 * 这里只根据 URI 生成key
+	 * 不管大小
+	 *
+	 * 距离显示图片的分辨率 与 缓存的图片文件 无关
+	 * @param imageUri
+	 * @return
+	 */
 	private String getKey(String imageUri) {
 		return fileNameGenerator.generate(imageUri);
 	}

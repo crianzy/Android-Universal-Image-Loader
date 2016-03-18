@@ -25,6 +25,7 @@ import java.io.InputStream;
 /**
  * Interface for disk cache
  *
+ * Disk 缓存接口
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.9.2
  */
