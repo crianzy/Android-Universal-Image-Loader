@@ -130,7 +130,7 @@ final class LoadAndDisplayImageTask implements Runnable, IoUtils.CopyListener {
 			// 是否被锁住了
 			L.d(LOG_WAITING_FOR_IMAGE_LOADED, memoryCacheKey);
 		}
-		// 开锁了
+		// 还是 锁
 		loadFromUriLock.lock();
 		Bitmap bmp;
 		try {

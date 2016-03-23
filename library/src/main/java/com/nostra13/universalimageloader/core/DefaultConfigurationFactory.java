@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011-2014 Sergey Tarasevich
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
+
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache;
 import com.nostra13.universalimageloader.cache.disc.impl.ext.LruDiskCache;
@@ -51,29 +52,40 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Factory for providing of default options for {@linkplain ImageLoaderConfiguration configuration}
- *
+ * <p>
  * 默认配置的 工厂 方法
+ *
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @since 1.5.6
  */
 public class DefaultConfigurationFactory {
 
-	/** Creates default implementation of task executor */
+	/**
+	 * Creates default implementation of task executor
+	 * 创建默认的 任务 线程池
+	 */
 	public static Executor createExecutor(int threadPoolSize, int threadPriority,
-			QueueProcessingType tasksProcessingType) {
+										  QueueProcessingType tasksProcessingType) {
 		boolean lifo = tasksProcessingType == QueueProcessingType.LIFO;
+
+		// 有FIFO 先进先出  和 蒲婷的链表队列
 		BlockingQueue<Runnable> taskQueue =
 				lifo ? new LIFOLinkedBlockingDeque<Runnable>() : new LinkedBlockingQueue<Runnable>();
+		//构建线程池
 		return new ThreadPoolExecutor(threadPoolSize, threadPoolSize, 0L, TimeUnit.MILLISECONDS, taskQueue,
 				createThreadFactory(threadPriority, "uil-pool-"));
 	}
 
-	/** Creates default implementation of task distributor */
+	/**
+	 * Creates default implementation of task distributor
+	 */
 	public static Executor createTaskDistributor() {
 		return Executors.newCachedThreadPool(createThreadFactory(Thread.NORM_PRIORITY, "uil-pool-d-"));
 	}
 
-	/** Creates {@linkplain HashCodeFileNameGenerator default implementation} of FileNameGenerator */
+	/**
+	 * Creates {@linkplain HashCodeFileNameGenerator default implementation} of FileNameGenerator
+	 */
 	public static FileNameGenerator createFileNameGenerator() {
 		return new HashCodeFileNameGenerator();
 	}
@@ -82,7 +94,7 @@ public class DefaultConfigurationFactory {
 	 * Creates default implementation of {@link DiskCache} depends on incoming parameters
 	 */
 	public static DiskCache createDiskCache(Context context, FileNameGenerator diskCacheFileNameGenerator,
-			long diskCacheSize, int diskCacheFileCount) {
+											long diskCacheSize, int diskCacheFileCount) {
 		File reserveCacheDir = createReserveDiskCacheDir(context);
 		if (diskCacheSize > 0 || diskCacheFileCount > 0) {
 			File individualCacheDir = StorageUtils.getIndividualCacheDirectory(context);
@@ -98,7 +110,9 @@ public class DefaultConfigurationFactory {
 		return new UnlimitedDiskCache(cacheDir, reserveCacheDir, diskCacheFileNameGenerator);
 	}
 
-	/** Creates reserve disk cache folder which will be used if primary disk cache folder becomes unavailable */
+	/**
+	 * Creates reserve disk cache folder which will be used if primary disk cache folder becomes unavailable
+	 */
 	private static File createReserveDiskCacheDir(Context context) {
 		File cacheDir = StorageUtils.getCacheDirectory(context, false);
 		File individualDir = new File(cacheDir, "uil-images");
@@ -138,22 +152,30 @@ public class DefaultConfigurationFactory {
 		return am.getLargeMemoryClass();
 	}
 
-	/** Creates default implementation of {@link ImageDownloader} - {@link BaseImageDownloader} */
+	/**
+	 * Creates default implementation of {@link ImageDownloader} - {@link BaseImageDownloader}
+	 */
 	public static ImageDownloader createImageDownloader(Context context) {
 		return new BaseImageDownloader(context);
 	}
 
-	/** Creates default implementation of {@link ImageDecoder} - {@link BaseImageDecoder} */
+	/**
+	 * Creates default implementation of {@link ImageDecoder} - {@link BaseImageDecoder}
+	 */
 	public static ImageDecoder createImageDecoder(boolean loggingEnabled) {
 		return new BaseImageDecoder(loggingEnabled);
 	}
 
-	/** Creates default implementation of {@link BitmapDisplayer} - {@link SimpleBitmapDisplayer} */
+	/**
+	 * Creates default implementation of {@link BitmapDisplayer} - {@link SimpleBitmapDisplayer}
+	 */
 	public static BitmapDisplayer createBitmapDisplayer() {
 		return new SimpleBitmapDisplayer();
 	}
 
-	/** Creates default implementation of {@linkplain ThreadFactory thread factory} for task executor */
+	/**
+	 * Creates default implementation of {@linkplain ThreadFactory thread factory} for task executor
+	 */
 	private static ThreadFactory createThreadFactory(int threadPriority, String threadNamePrefix) {
 		return new DefaultThreadFactory(threadPriority, threadNamePrefix);
 	}

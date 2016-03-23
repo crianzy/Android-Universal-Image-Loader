@@ -311,8 +311,8 @@ public class ImageLoader {
 				ProcessAndDisplayImageTask displayTask = new ProcessAndDisplayImageTask(engine, bmp, imageLoadingInfo,
 						defineHandler(options));
 				if (options.isSyncLoading()) {
-					// 这里 判断是不是 异步 更多的是 在加载图片 之前 是不是 就已经是 其他线程了 这样 就不需要在勇引擎的线程池做处理了
-					//如果是 异步读取的话 默认是false
+					// 这里 判断是不是 同步 更多的是 在加载图片 之前 是不是 就已经是 其他线程了 这样 就不需要在勇引擎的线程池做处理了
+					//如果是 同步读取的话 默认是false
 					displayTask.run();
 				} else {
 					// 把任务提交给引擎
